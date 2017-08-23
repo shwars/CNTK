@@ -14,7 +14,7 @@ namespace CNTK.CSTrainingExamples
     /// </summary>
     public class CifarResNetClassifier
     {
-        public static string CifarDataFolder = "C:/cntk/Examples/Image/DataSets/CIFAR-10";
+        public static string CifarDataFolder = "../../Examples/Image/DataSets/CIFAR-10";
         static readonly int[] imageDim = {32, 32, 3};
         static readonly int numClasses = 10;
 

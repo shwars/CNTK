@@ -5,7 +5,7 @@ namespace CNTK.CSTrainingExamples
 {
     public class MNISTClassifier
     {
-        public static string ImageDataFolder = "C:/cntk/Tests/EndToEndTests/Image/Data/";
+        public static string ImageDataFolder = "../../Tests/EndToEndTests/Image/Data/";
 
         public static void TrainAndEvaluate(DeviceDescriptor device, bool useConvolution, bool forceRetrain)
         {

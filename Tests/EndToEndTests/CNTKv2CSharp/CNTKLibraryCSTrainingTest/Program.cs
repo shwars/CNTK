@@ -86,10 +86,7 @@ namespace CNTK.CNTKLibraryCSTrainingTest
             {
                 Console.WriteLine($"======== runing TransferLearning.TrainAndEvaluateWithFlowerData using {device.Type} ========");
                 TransferLearning.TrainAndEvaluateWithFlowerData(device, true);
-            }
 
-            if (device.Type == DeviceKind.GPU)
-            {
                 Console.WriteLine($"======== runing TransferLearning.TrainAndEvaluateWithAnimalData using {device.Type} ========");
                 TransferLearning.TrainAndEvaluateWithAnimalData(device, true);
             }

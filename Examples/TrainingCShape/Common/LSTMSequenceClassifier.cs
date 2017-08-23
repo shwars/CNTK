@@ -9,7 +9,7 @@ namespace CNTK.CSTrainingExamples
     /// </summary>
     public class LSTMSequenceClassifier
     {
-        public static string DataFolder = "C:/cntk/Tests/EndToEndTests/Text/SequenceClassification/Data";
+        public static string DataFolder = "../../Tests/EndToEndTests/Text/SequenceClassification/Data";
 
         public static void Train(DeviceDescriptor device, bool useSparseLabels)
         {

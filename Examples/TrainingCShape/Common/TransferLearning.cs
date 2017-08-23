@@ -15,7 +15,7 @@ namespace CNTK.CSTrainingExamples
     public class TransferLearning
     {
         public static string CurrentFolder = "./";
-        public static string ExampleImageFoler = "C:/cntk/Examples/Image";
+        public static string ExampleImageFoler = "../../Examples/Image";
 
         private static string baseResnetModelFile = "PretrainedModels/ResNet_18.model";
         private static string featureNodeName = "features";
