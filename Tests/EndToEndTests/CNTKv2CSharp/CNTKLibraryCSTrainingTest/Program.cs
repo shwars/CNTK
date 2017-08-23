@@ -5,6 +5,7 @@
 // Program.cs : Tests of CNTK Library C# model training examples.
 //
 using CNTK;
+using CNTK.CSTrainingExamples;
 using System;
 
 namespace CNTK.CNTKLibraryCSTrainingTest
@@ -20,15 +21,17 @@ namespace CNTK.CNTKLibraryCSTrainingTest
 #else
             Console.WriteLine("======== Train model on CPU using GPU build ========");
 #endif
-
             if (ShouldRunOnCpu())
             {
+                Console.WriteLine(" ====== Train model on CPU =====");
                 var device = DeviceDescriptor.CPUDevice;
 
                 SimpleFeedForwardClassifierTest.TrainSimpleFeedForwardClassifier(device);
-                MNISTClassifierTest.TrainMNISTClassifier(device, false);
-                LSTMSequenceClassifierTest.TrainLSTMSequenceClassifier(device, false, false);
-                TransferLearning.TrainAndEvaluateTransferLearning(device);
+
+                if (args.Length > 0 && args[0] == "RunExamples")
+                {
+                    RunExamples(device);
+                }
             }
 
             if (ShouldRunOnGpu())
@@ -37,10 +40,11 @@ namespace CNTK.CNTKLibraryCSTrainingTest
                 var device = DeviceDescriptor.GPUDevice(0);
 
                 SimpleFeedForwardClassifierTest.TrainSimpleFeedForwardClassifier(device);
-                MNISTClassifierTest.TrainMNISTClassifier(device, false);
-                LSTMSequenceClassifierTest.TrainLSTMSequenceClassifier(device, false, false);
-                TransferLearning.TrainAndEvaluateTransferLearning(device);
-                CifarResNetTest.TrainResNetCifarClassifier(device, false);
+
+                if (args.Length > 0 && args[0] == "RunExamples")
+                {
+                    RunExamples(device);
+                }
             }
 
             Console.WriteLine("======== Train completes. ========");
@@ -62,6 +66,36 @@ namespace CNTK.CNTKLibraryCSTrainingTest
             string testDeviceSetting = Environment.GetEnvironmentVariable("TEST_DEVICE");
 
             return (string.IsNullOrEmpty(testDeviceSetting) || string.Equals(testDeviceSetting.ToLower(), "cpu"));
+        }
+
+        static void RunExamples(DeviceDescriptor device)
+        {
+            Console.WriteLine($"======== runing MNISTClassifierTest.TrainAndEvaluate using {device.Type} with logistic classifier ========");
+            MNISTClassifier.TrainAndEvaluate(device, false, true);
+
+            Console.WriteLine($"======== runing MNISTClassifierTest.TrainAndEvaluate using {device.Type} with convolution classifier ========");
+            MNISTClassifier.TrainAndEvaluate(device, true, true);
+
+            if (device.Type == DeviceKind.GPU)
+            {
+                Console.WriteLine($"======== runing CifarResNet.TrainAndEvaluate using {device.Type} ========");
+                CifarResNetClassifier.TrainAndEvaluate(device, true);
+            }
+
+            if (device.Type == DeviceKind.GPU)
+            {
+                Console.WriteLine($"======== runing TransferLearning.TrainAndEvaluateWithFlowerData using {device.Type} ========");
+                TransferLearning.TrainAndEvaluateWithFlowerData(device, true);
+            }
+
+            if (device.Type == DeviceKind.GPU)
+            {
+                Console.WriteLine($"======== runing TransferLearning.TrainAndEvaluateWithAnimalData using {device.Type} ========");
+                TransferLearning.TrainAndEvaluateWithAnimalData(device, true);
+            }
+
+            Console.WriteLine($"======== runing LSTMSequenceClassifier.Train using {device.Type} ========");
+            LSTMSequenceClassifier.Train(device, true);
         }
     }
 }

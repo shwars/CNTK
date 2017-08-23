@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CNTK
 {
@@ -28,6 +24,15 @@ namespace CNTK
             }
         }
 
+        /// <summary>
+        /// create a momentum SGD learner
+        /// </summary>
+        /// <param name="parameters">parameters to learn</param>
+        /// <param name="learningRateSchedule">learning rate schedule</param>
+        /// <param name="momentumSchedule">momentum schedule</param>
+        /// <param name="unitGain">unit gain</param>
+        /// <param name="additionalOptions">other additional options</param>
+        /// <returns></returns>
         public static Learner MomentumSGDLearner(IList<Parameter> parameters, TrainingParameterScheduleDouble learningRateSchedule,
             TrainingParameterScheduleDouble momentumSchedule, bool unitGain, AdditionalLearningOptions additionalOptions = null)
         {

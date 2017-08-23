@@ -1,13 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CNTK
 {
     public partial class Constant
     {
+        /// <summary>
+        /// create a constant
+        /// </summary>
+        /// <param name="shape">shape of the constant</param>
+        /// <param name="initValue">initial value</param>
+        /// <param name="device">device</param>
+        /// <param name="name">name</param>
         public Constant(NDShape shape, float initValue, DeviceDescriptor device, string name = "") :
             this(shape, DataType.Float, initValue, device, name)
         {
@@ -16,9 +19,9 @@ namespace CNTK
         /// <summary>
         /// Create a scalar constant. The specified value is cast to the specified DataType
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <param name="device"></param>
+        /// <typeparam name="T">data type</typeparam>
+        /// <param name="value">initial value</param>
+        /// <param name="device">device</param>
         /// <returns></returns>
         static public Constant Scalar<T>(T value, DeviceDescriptor device)
         {
@@ -37,7 +40,7 @@ namespace CNTK
             }
             else
             {
-                throw new System.ArgumentException("The data type " + typeof(T).ToString() + " is not supported. Only float or double is supported by CNTK.");
+                throw new ArgumentException("The data type " + typeof(T).ToString() + " is not supported. Only float or double is supported by CNTK.");
             }
         }
     }

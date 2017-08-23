@@ -4,6 +4,7 @@
 //
 // VariableShim.cs -- C# Api for CNTK Variable class
 //
+using System;
 using System.Collections.Generic;
 
 namespace CNTK
@@ -53,7 +54,7 @@ namespace CNTK
         /// <summary>
         /// Property DynamicAxes.
         /// </summary>
-        public System.Collections.Generic.IList<Axis> DynamicAxes
+        public IList<Axis> DynamicAxes
         {
             get
             {
@@ -61,7 +62,7 @@ namespace CNTK
                 // The CopyTo is to ensure that elements in axisVector live beyond the lifecycle of axisVector.
                 var axisArray = new Axis[axisVector.Count];
                 axisVector.CopyTo(axisArray);
-                var axisList = new System.Collections.Generic.List<Axis>(axisArray);
+                var axisList = new List<Axis>(axisArray);
                 return axisList;
             }
         }
@@ -143,7 +144,7 @@ namespace CNTK
         /// </summary>
         /// <param name="obj"></param>
         /// <returns>true when equal</returns>
-        public override bool Equals(System.Object obj)
+        public override bool Equals(Object obj)
         {
             // If parameter is null return false.
             if (obj == null)
@@ -153,7 +154,7 @@ namespace CNTK
 
             // If parameter cannot be cast to Point return false.
             Variable p = obj as Variable;
-            if ((System.Object)p == null)
+            if ((Object)p == null)
             {
                 return false;
             }

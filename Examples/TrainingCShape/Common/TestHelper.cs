@@ -4,23 +4,22 @@
 //
 // TestHelper.cs -- Help functions for CNTK Library C# model training tests.
 //
-using CNTK;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CNTK.CNTKLibraryCSTrainingTest
+namespace CNTK.CSTrainingExamples
 {
+    public enum Activation
+    {
+        None,
+        ReLU,
+        Sigmoid,
+        Tanh
+    }
     public class TestHelper
     {
-        public enum Activation
-        {
-            None,
-            ReLU,
-            Sigmoid,
-            Tanh
-        }
         public static Function Dense(Variable input, int outputDim, DeviceDescriptor device, 
             Activation activation = Activation.None, string outputName = "")
         {
@@ -66,21 +65,55 @@ namespace CNTK.CNTKLibraryCSTrainingTest
             return CNTKLib.Plus(plusParam, new Variable(timesFunction), outputName);
         }
 
-        //Function Convolution(int[] filter_shape,     // shape of receptive field, e.g. (3,3)
-        //    int num_filters, //  e.g. 64 or None (which means 1 channel and don't add a dimension)
-        //    bool sequential = false, // time convolution if True (filter_shape[0] corresponds to dynamic axis)
-        //    Activation activation = Activation.None,
-        //    init = default_override_or(glorot_uniform()),
-        //    bool pad= false,
-        //    int strides= 1,
-        //    bool bias= true,
-        //    float init_bias= 0,
-        //    int reduction_rank= 1, // (0 means input has no depth dimension, e.g. audio signal or B&W image)
-        //    int max_temp_mem_size_in_samples= 0,
-        //    string name= "")
-        //{
+        public static float ValidateModelWithMinibatchSource(
+            string modelFile, MinibatchSource testMinibatchSource,
+            int[] imageDim, int numClasses, string featureInputName, string labelInputName, string outputName,
+            DeviceDescriptor device, int maxCount = 1000)
+        {
+            Function model = Function.Load(modelFile, device);
+            var imageInput = model.Arguments[0];
+            var labelOutput = model.Outputs.Single(o => o.Name == outputName);
 
-        //}
+            var featureStreamInfo = testMinibatchSource.StreamInfo(featureInputName);
+            var labelStreamInfo = testMinibatchSource.StreamInfo(labelInputName);
+
+            int batchSize = 50;
+            int miscountTotal = 0, totalCount = 0;
+            while (true)
+            {
+                var minibatchData = testMinibatchSource.GetNextMinibatch((uint)batchSize, device);
+                if (minibatchData == null)
+                    break;
+                totalCount += (int)minibatchData[featureStreamInfo].numberOfSamples;
+                if (totalCount > maxCount)
+                    break;
+
+                // expected lables are in the minibatch data.
+                var labelData = minibatchData[labelStreamInfo].data.GetDenseData<float>(labelOutput);
+                var expectedLabels = labelData.Select(l => l.IndexOf(l.Max())).ToList();
+
+                var inputDataMap = new Dictionary<Variable, Value>() {
+                    { imageInput, minibatchData[featureStreamInfo].data }
+                };
+
+                var outputDataMap = new Dictionary<Variable, Value>() {
+                    { labelOutput, null }
+                };
+
+                model.Evaluate(inputDataMap, outputDataMap, device);
+                var outputData = outputDataMap[labelOutput].GetDenseData<float>(labelOutput);
+                var actualLabels = outputData.Select(l => l.IndexOf(l.Max())).ToList();
+
+                int misMatches = actualLabels.Zip(expectedLabels, (a, b) => a.Equals(b) ? 0 : 1).Sum();
+
+                miscountTotal += misMatches;
+                Console.WriteLine($"Validating Model: Total Samples = {totalCount}, Misclassify Count = {miscountTotal}");
+            }
+
+            float errorRate = 1.0F * miscountTotal / totalCount;
+            Console.WriteLine($"Model Validation Error = {errorRate}");
+            return errorRate;
+        }
 
         public static void SaveAndReloadModel(ref Function function, IList<Variable> variables, DeviceDescriptor device, uint rank = 0)
         {
@@ -117,26 +150,6 @@ namespace CNTK.CNTKLibraryCSTrainingTest
                 outputVarNames[outputVarInfo.Key] = newOutputVar;
             }
         }
-
-        public static Value MinibatchDataToValue(MinibatchData minibatchData, int[] imageDims, int minibatchSize)
-        {
-            int imageSize = imageDims.Aggregate((d1, d2) => d1 * d2);
-            int sequenceLength = 1;
-            NDShape shape = NDShape.CreateNDShape(new int[] { imageSize, sequenceLength, minibatchSize });
-            Variable inputVariableForShape = Variable.InputVariable(shape, DataType.Float);
-
-            int[] imageBatchDim = new int[imageDims.Length + 2];
-            imageDims.CopyTo(imageBatchDim, 0);
-            imageBatchDim[imageBatchDim.Length - 2] = sequenceLength;
-            imageBatchDim[imageBatchDim.Length - 1] = minibatchSize;
-
-            System.Collections.Generic.IList<System.Collections.Generic.IList<float>> bufs =
-                minibatchData.data.GetDenseData<float>(inputVariableForShape);
-            // NDShape imageBatchShape = NDShape.CreateNDShape(imageBatchDim);
-            Value imageBatchValue = Value.CreateBatch<float>(imageDims, bufs[0], minibatchData.data.Device);
-            return imageBatchValue;
-        }
-
 
         public static void PrintTrainingProgress(Trainer trainer, int minibatchIdx, int outputFrequencyInMinibatches)
         {

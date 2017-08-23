@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using CNTK;
+using CNTK.CSTrainingExamples;
 
 namespace CNTK.CNTKLibraryCSTrainingTest
 {
@@ -126,6 +127,13 @@ namespace CNTK.CNTKLibraryCSTrainingTest
                         trainer.SaveCheckpoint(ckpName);
                         trainer.RestoreFromCheckpoint(ckpName);
                     }
+                }
+
+                double trainLossValue = trainer.PreviousMinibatchLossAverage();
+                double evaluationValue = trainer.PreviousMinibatchEvaluationAverage();
+                if (trainLossValue > 0.3 || evaluationValue > 0.2)
+                {
+                    throw new Exception($"TrainSimpleFeedForwardClassifier resulted in unusual high training loss (= {trainLossValue}) or error rate (= {evaluationValue})");
                 }
             }
         }

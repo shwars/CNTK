@@ -1,14 +1,76 @@
-﻿using CNTK;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
-namespace CNTK.CNTKLibraryCSTrainingTest
+namespace CNTK.CSTrainingExamples
 {
-    public class LSTMSequenceClassifierTest
+    /// <summary>
+    /// this class shows hot to build and train a recurrent neural network from ground up in C#. 
+    /// </summary>
+    public class LSTMSequenceClassifier
     {
+        public static string DataFolder = "C:/cntk/Tests/EndToEndTests/Text/SequenceClassification/Data";
+
+        public static void Train(DeviceDescriptor device, bool useSparseLabels)
+        {
+            const int inputDim = 2000;
+            const int cellDim = 25;
+            const int hiddenDim = 25;
+            const int embeddingDim = 50;
+            const int numOutputClasses = 5;
+
+            var featuresName = "features";
+            var features = Variable.InputVariable(new int[] { inputDim }, DataType.Float, featuresName, null, true /*isSparse*/);
+            var classifierOutput = LSTMSequenceClassifierNet(features, numOutputClasses, embeddingDim, hiddenDim, cellDim, device, "classifierOutput");
+
+            var labelsName = "labels";
+            var labels = Variable.InputVariable(new int[] { numOutputClasses }, DataType.Float, labelsName,
+                new List<Axis>() { Axis.DefaultBatchAxis() }, useSparseLabels);
+            Function trainingLoss = CNTKLib.CrossEntropyWithSoftmax(classifierOutput, labels, "lossFunction");
+            Function prediction = CNTKLib.ClassificationError(classifierOutput, labels, "classificationError");
+
+            IList<StreamConfiguration> streamConfigurations = new StreamConfiguration[]
+                { new StreamConfiguration(featuresName, inputDim, true, "x"), new StreamConfiguration(labelsName, numOutputClasses, false, "y") };
+
+            TrainingParameterScheduleDouble learningRatePerSample = new TrainingParameterScheduleDouble(
+                0.0005, TrainingParameterScheduleDouble.UnitType.Sample);
+
+            MomentumAsTimeConstantScheduleCS momentumTimeConstant = new MomentumAsTimeConstantScheduleCS(256);
+
+            IList<Learner> parameterLearners = new List<Learner>() {
+                Learner.MomentumSGDLearner(classifierOutput.Parameters(), learningRatePerSample, momentumTimeConstant, /*unitGainMomentum = */true)  };
+            var trainer = Trainer.CreateTrainer(classifierOutput, trainingLoss, prediction, parameterLearners);
+
+            int outputFrequencyInMinibatches = 20;
+            int numEpochs = 50;
+            for (int epoch = 0; epoch < numEpochs; epoch++)
+            {
+                const uint minibatchSize = 200;
+
+                var minibatchSource = MinibatchSource.TextFormatMinibatchSource(
+                    Path.Combine(DataFolder, "Train.ctf"), streamConfigurations,
+                    MinibatchSource.FullDataSweep, true);
+                var featureStreamInfo = minibatchSource.StreamInfo(featuresName);
+                var labelStreamInfo = minibatchSource.StreamInfo(labelsName);
+
+                for (int i = 0; true; i++)
+                {
+                    var minibatchData = minibatchSource.GetNextMinibatch(minibatchSize, device);
+                    if (minibatchData.empty())
+                        break;
+
+                    var arguments = new Dictionary<Variable, MinibatchData>
+                    {
+                        { features, minibatchData[featureStreamInfo] },
+                        { labels, minibatchData[labelStreamInfo] }
+                    };
+
+                    trainer.TrainMinibatch(arguments, device);
+                    TestHelper.PrintTrainingProgress(trainer, i, outputFrequencyInMinibatches);
+                }
+            }
+        }
+
         static Function Stabilize<ElementType>(Variable x, DeviceDescriptor device)
         {
             bool isFloatType = typeof(ElementType).Equals(typeof(float));
@@ -112,8 +174,6 @@ namespace CNTK.CNTKLibraryCSTrainingTest
             return new Tuple<Function, Function>(LSTMCell.Item1, LSTMCell.Item2);
         }
 
-
-
         private static Function Embedding(Variable input, int embeddingDim, DeviceDescriptor device)
         {
             System.Diagnostics.Debug.Assert(input.Shape.Rank == 1);
@@ -137,78 +197,6 @@ namespace CNTK.CNTKLibraryCSTrainingTest
             Function thoughtVectorFunction = CNTKLib.Last(LSTMFunction);
 
             return TestHelper.FullyConnectedLinearLayer(thoughtVectorFunction, numOutputClasses, device, outputName);
-        }
-
-        public static void TrainLSTMSequenceClassifier(DeviceDescriptor device, bool useSparseLabels, bool testSaveAndReLoad)
-        {
-            const int inputDim = 2000;
-            const int cellDim = 25;
-            const int hiddenDim = 25;
-            const int embeddingDim = 50;
-            const int numOutputClasses = 5;
-
-            var featuresName = "features";
-            var features = Variable.InputVariable(new int[] { inputDim }, DataType.Float, featuresName, null, true /*isSparse*/);
-            var classifierOutput = LSTMSequenceClassifierNet(features, numOutputClasses, embeddingDim, hiddenDim, cellDim, device, "classifierOutput");
-
-            var labelsName = "labels";
-            var labels = Variable.InputVariable(new int[] { numOutputClasses }, DataType.Float, labelsName,
-                new List<Axis>() { Axis.DefaultBatchAxis() }, useSparseLabels);
-            Function trainingLoss = CNTKLib.CrossEntropyWithSoftmax(classifierOutput, labels, "lossFunction");
-            Function prediction = CNTKLib.ClassificationError(classifierOutput, labels, "classificationError");
-
-            if (testSaveAndReLoad)
-            {
-                Variable classifierOutputVar = classifierOutput;
-                Variable trainingLossVar = trainingLoss;
-                Variable predictionVar = prediction;
-                var oneHiddenLayerClassifier = Function.Combine(new List<Variable>() { trainingLossVar, predictionVar, classifierOutputVar }, "classifierModel");
-                TestHelper.SaveAndReloadModel(ref oneHiddenLayerClassifier, new List<Variable>() { features, labels, trainingLossVar, predictionVar, classifierOutputVar }, device);
-
-                // NOT NEEDED
-                classifierOutput = classifierOutputVar;
-                trainingLoss = trainingLossVar;
-                prediction = predictionVar;
-            }
-
-            IList<StreamConfiguration> streamConfigurations = new StreamConfiguration[]
-                { new StreamConfiguration(featuresName, inputDim, true, "x"), new StreamConfiguration(labelsName, numOutputClasses, false, "y") };
-
-            // TODO:
-            var minibatchSource = MinibatchSource.TextFormatMinibatchSource("Train.ctf", streamConfigurations,
-                MinibatchSource.FullDataSweep, true);
-
-            const uint minibatchSize = 200;
-
-            var featureStreamInfo = minibatchSource.StreamInfo(featuresName);
-            var labelStreamInfo = minibatchSource.StreamInfo(labelsName);
-
-            TrainingParameterScheduleDouble learningRatePerSample = new TrainingParameterScheduleDouble(
-                0.0005, TrainingParameterScheduleDouble.UnitType.Sample);
-
-            MomentumAsTimeConstantScheduleCS momentumTimeConstant = new MomentumAsTimeConstantScheduleCS(256);
-            // CNTK.TrainingParameterScheduleDouble momentumTimeConstant = new CNTK.TrainingParameterScheduleDouble(256.0);
-
-            IList<Learner> parameterLearners = new List<Learner>() {
-                Learner.MomentumSGDLearner(classifierOutput.Parameters(), learningRatePerSample, momentumTimeConstant, /*unitGainMomentum = */true)  };
-            var trainer = Trainer.CreateTrainer(classifierOutput, trainingLoss, prediction, parameterLearners);
-
-            int outputFrequencyInMinibatches = 1;
-            for (int i = 0; true; i++)
-            {
-                var minibatchData = minibatchSource.GetNextMinibatch(minibatchSize, device);
-                if (minibatchData.empty())
-                    break;
-
-                var arguments = new Dictionary<Variable, MinibatchData>
-                {
-                    { features, minibatchData[featureStreamInfo] },
-                    { labels, minibatchData[labelStreamInfo] }
-                };
-
-                trainer.TrainMinibatch(arguments, device);
-                TestHelper.PrintTrainingProgress(trainer, i, outputFrequencyInMinibatches);
-            }
         }
     }
 }
