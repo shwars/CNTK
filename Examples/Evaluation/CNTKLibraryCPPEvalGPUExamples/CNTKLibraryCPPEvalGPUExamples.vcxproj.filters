@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\CNTKLibraryCPPEvalCPUOnlyExamples\EvalMultithreads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CNTKLibraryCPPEvalGPUExamples.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

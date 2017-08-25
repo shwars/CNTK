@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CNTKLibraryCPPEvalCPUOnlyExamples.cpp" />
-    <ClCompile Include="EvalMultithreads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
