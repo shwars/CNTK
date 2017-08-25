@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CNTKLibraryCPPEvalCPUOnlyExamples.cpp" />
+    <ClCompile Include="CNTKLibraryCPPEvalExamples.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
