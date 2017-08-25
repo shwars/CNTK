@@ -5,6 +5,11 @@
 // CNTKLibraryCPPEvalExamples.cpp : Sample application shows how to evaluate a model using CNTK V2 API.
 //
 
+#include <thread>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include "CNTKLibrary.h"
 
 using namespace CNTK;
@@ -70,7 +75,6 @@ void EvaluationSingleSampleUsingDense(const DeviceDescriptor& device)
 
     PrintOutput<float>(outputVar.Shape().TotalSize(), outputData);
 }
-
 
 /// <summary>
 /// The example shows
@@ -205,6 +209,371 @@ void RunEvaluationOnSingleSample(FunctionPtr evalInstance, const DeviceDescripto
     ValuePtr outputVal = outputDataMap[outputVar];
     std::vector<std::vector<float>> outputData;
     outputVal->CopyVariableValueTo(outputVar, outputData);
+}
+
+
+std::unordered_map<std::string, size_t> buildVocabIndex(const char *);
+std::vector<std::string> buildSlotIndex(const char *);
+
+/// <summary>
+/// The example shows
+/// - how to load model.
+/// - how to prepare input data as sequence using one-hot vector.
+/// - how to prepare input and output data map.
+/// - how to evaluate a model.
+/// - how to retrieve evaluation result.
+/// The model atis.dnn is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
+/// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
+/// The pre-trained model file must be in the output directory.
+/// </summary>
+/// <param name="device">Specify on which device to run the evaluation</param>
+void EvaluationSingleSequenceUsingOneHot(const DeviceDescriptor& device)
+{
+    printf("\n===== Evaluate single sequence using one-hot vector.\n");
+
+    // Load the model.
+    // The model atis.dnn is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
+    // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
+    const wchar_t* modelFileName = L"atis.dnn";
+    FunctionPtr modelFunc = Function::Load(modelFileName, device);
+
+    // Read word and slot index files.
+    const char* vocabFile = "query.wl";
+    const char* labelFile = "slots.wl";
+    std::unordered_map<std::string, size_t> vocabToIndex = buildVocabIndex(vocabFile);
+    std::vector<std::string> indexToSlots = buildSlotIndex(labelFile);
+
+    // Get input variable. The model has only one single input.
+    Variable inputVar = modelFunc->Arguments()[0];
+    size_t vocabSize = inputVar.Shape().TotalSize();
+
+    char *inputSentence = "BOS i would like to find a flight from charlotte to las vegas that makes a stop in st. louis EOS";
+    std::vector<size_t> seqData;
+    std::vector<std::string> inputWords;
+    std::stringstream inputStream;
+    std::string word;
+    size_t index;
+
+    // build one-hot index for the input sequence.
+    inputStream.str(inputSentence);
+    while (inputStream >> word)
+    {
+        inputWords.push_back(word);
+        index = vocabToIndex.at(word);
+        seqData.push_back(index);
+    }
+
+    // SeqStartFlag is used to indicate whether this sequence is a new sequence (true) or concatenating the previous sequence (false).
+    bool seqStartFlag = true;
+
+    // Create input value using one-hot vector and input data map
+    ValuePtr inputVal = Value::CreateSequence<float>(vocabSize, seqData, seqStartFlag, device);
+    std::unordered_map<Variable, ValuePtr> inputDataMap = { { inputVar, inputVal } };
+
+    // The model has only one output.
+    // If the model has more than one output, use modelFunc->Outputs to get the list of output variables.
+    Variable outputVar = modelFunc->Output();
+
+    // Create output data map. Using null as Value to indicate using system allocated memory.
+    // Alternatively, create a Value object and add it to the data map.
+    std::unordered_map<Variable, ValuePtr> outputDataMap = { { outputVar, nullptr } };
+
+    // Start evaluation on the device
+    modelFunc->Evaluate(inputDataMap, outputDataMap, device);
+
+    // Get evaluate result as dense output
+    ValuePtr outputVal = outputDataMap[outputVar];
+    std::vector<std::vector<float>> outputData;
+    outputVal->CopyVariableValueTo(outputVar, outputData);
+
+    // output the result
+    size_t outputSampleSize = outputVar.Shape().TotalSize();
+    if (outputData.size() != 1)
+    {
+        throw("Only one sequence of slots is expected as output.");
+    }
+    std::vector<float> slotSeq = outputData[0];
+    if (slotSeq.size() % outputSampleSize != 0)
+    {
+        throw("The number of elements in the slot sequence is not a multiple of sample size");
+    }
+
+    size_t numOfSlotsInOutput = slotSeq.size() / outputSampleSize;
+    if (inputWords.size() != numOfSlotsInOutput)
+    {
+        throw("The number of input words and the number of output slots do not match");
+    }
+    for (size_t i = 0; i < numOfSlotsInOutput; i++)
+    {
+        float max = slotSeq[i * outputSampleSize];
+        size_t maxIndex = 0;
+        for (size_t j = 1; j < outputSampleSize; j++)
+        {
+            if (slotSeq[i * outputSampleSize + j] > max)
+            {
+                max = slotSeq[i * outputSampleSize + j];
+                maxIndex = j;
+            }
+        }
+        printf("     %10s ---- %s\n", inputWords[i].c_str(), indexToSlots[maxIndex].c_str());
+    }
+    printf("\n");
+}
+
+/// <summary>
+/// The example shows
+/// - how to load model.
+/// - how to prepare input data as batch of sequences with variable length.
+///   how to prepare data using one-hot vector format.
+/// - how to prepare input and output data map.
+/// - how to evaluate a model.
+/// The model atis.dnn is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
+/// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
+/// The pre-trained model file must be in the output directory.
+/// </summary>
+void EvaluationBatchOfSequencesUsingOneHot(const DeviceDescriptor& device)
+{
+    printf("\n===== Evaluate batch of sequences with variable length using one-hot vector.\n");
+
+    // Load the model.
+    // The model atis.dnn is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
+    // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
+    const wchar_t* modelFileName = L"atis.dnn";
+    FunctionPtr modelFunc = Function::Load(modelFileName, device);
+
+    // Read word and slot index files.
+    const char* vocabFile = "query.wl";
+    const char* labelFile = "slots.wl";
+    std::unordered_map<std::string, size_t> vocabToIndex = buildVocabIndex(vocabFile);
+    std::vector<std::string> indexToSlots = buildSlotIndex(labelFile);
+
+    // Get input variable. The model has only one single input.
+    Variable inputVar = modelFunc->Arguments()[0];
+    size_t vocabSize = inputVar.Shape().TotalSize();
+
+    std::vector<const char *> inputSentences = {
+        "BOS i would like to find a flight from charlotte to las vegas that makes a stop in st. louis EOS",
+        "BOS flights from new york to seattle EOS"
+    };
+
+    // Prepare input data.
+    std::vector<std::vector<std::string>> inputWordsList(inputSentences.size());
+    // Each sample is represented by an index to the one-hot vector, so the index of the non-zero value of each sample is saved in the inner list.
+    // The outer list represents sequences contained in the batch.
+    std::vector<std::vector<size_t>> inputBatch;
+    // SeqStartFlagBatch is used to indicate whether this sequence is a new sequence (true) or concatenating the previous sequence (false).
+    std::vector<bool> seqStartFlagBatch;
+    std::string word;
+    size_t index;
+
+    for (size_t seqIndex = 0; seqIndex < inputSentences.size(); seqIndex++)
+    {
+        std::stringstream inputStream;
+        std::vector<size_t> seqData;
+        // build one-hot index for the input sequences.
+        inputStream.str(inputSentences[seqIndex]);
+        while (inputStream >> word)
+        {
+            inputWordsList[seqIndex].push_back(word);
+            index = vocabToIndex.at(word);
+            seqData.push_back(index);
+        }
+        inputBatch.push_back(seqData);
+        seqStartFlagBatch.push_back(true);
+    }
+
+    // Create input value representing the batch data and input data map
+    ValuePtr inputVal = Value::CreateBatchOfSequences<float>(vocabSize, inputBatch, seqStartFlagBatch, device);
+    std::unordered_map<Variable, ValuePtr> inputDataMap = { { inputVar, inputVal } };
+
+    // The model has only one output.
+    // If the model has more than one output, use modelFunc->Outputs to get the list of output variables.
+    Variable outputVar = modelFunc->Output();
+
+    // Create output data map. Using null as Value to indicate using system allocated memory.
+    // Alternatively, create a Value object and add it to the data map.
+    std::unordered_map<Variable, ValuePtr> outputDataMap = { { outputVar, nullptr } };
+
+    // Start evaluation on the device
+    modelFunc->Evaluate(inputDataMap, outputDataMap, device);
+
+    // Get evaluate result as dense output
+    ValuePtr outputVal = outputDataMap[outputVar];
+    std::vector<std::vector<float>> outputData;
+    outputVal->CopyVariableValueTo(outputVar, outputData);
+
+    // output the result
+    size_t outputSampleSize = outputVar.Shape().TotalSize();
+    if (outputData.size() != inputBatch.size())
+    {
+        throw("The number of sequence in output does not match that in input.");
+    }
+    printf("The number of sequences in the batch: %d\n", (int)outputData.size());
+    for (size_t seqno = 0; seqno < outputData.size(); seqno++)
+    {
+        std::vector<float> slotSeq = outputData[seqno];
+        printf("Sequence %d:\n", (int)seqno);
+
+        if (slotSeq.size() % outputSampleSize != 0)
+        {
+            throw("The number of elements in the slot sequence is not a multiple of sample size");
+        }
+
+        size_t numOfSlotsInOutput = slotSeq.size() / outputSampleSize;
+        if (inputWordsList[seqno].size() != numOfSlotsInOutput)
+        {
+            throw("The number of input words and the number of output slots do not match");
+        }
+        for (size_t i = 0; i < numOfSlotsInOutput; i++)
+        {
+            float max = slotSeq[i * outputSampleSize];
+            size_t maxIndex = 0;
+            for (size_t j = 1; j < outputSampleSize; j++)
+            {
+                if (slotSeq[i * outputSampleSize + j] > max)
+                {
+                    max = slotSeq[i * outputSampleSize + j];
+                    maxIndex = j;
+                }
+            }
+            printf("     %10s ---- %s\n", inputWordsList[seqno][i].c_str(), indexToSlots[maxIndex].c_str());
+        }
+        printf("\n");
+    }
+}
+
+/// <summary>
+/// The example shows
+/// - how to prepare input data as sequence using sparse input.
+/// </summary>
+void EvaluationSingleSequenceUsingSparse(const DeviceDescriptor& device)
+{
+    printf("\n===== Evaluate single sequence using sparse input.\n");
+
+    // Load the model.
+    // The model atis.dnn is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
+    // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
+    const wchar_t* modelFileName = L"atis.dnn";
+    FunctionPtr modelFunc = Function::Load(modelFileName, device);
+
+    // Read word and slot index files.
+    const char* vocabFile = "query.wl";
+    const char* labelFile = "slots.wl";
+    std::unordered_map<std::string, size_t> vocabToIndex = buildVocabIndex(vocabFile);
+    std::vector<std::string> indexToSlots = buildSlotIndex(labelFile);
+
+    // Get input variable. The model has only one single input.
+    Variable inputVar = modelFunc->Arguments()[0];
+    size_t vocabSize = inputVar.Shape().TotalSize();
+
+    char *inputSentence = "BOS i would like to find a flight from charlotte to las vegas that makes a stop in st. louis EOS";
+    std::vector<size_t> seqData;
+    std::vector<std::string> inputWords;
+    std::stringstream inputStream;
+    std::string word;
+
+    // build one-hot index for the input sequence.
+    inputStream.str(inputSentence);
+    while (inputStream >> word)
+    {
+        inputWords.push_back(word);
+    }
+
+    size_t seqLen = inputWords.size();
+    // For this example, only 1 non-zero value for each sample.
+    size_t numNonZeroValues = seqLen * 1;
+    std::vector<SparseIndexType> colStarts;
+    std::vector<SparseIndexType> rowIndices;
+    std::vector<float> nonZeroValues;
+
+    size_t count = 0;
+    for (; count < seqLen; count++)
+    {
+        // Get the index of the word
+        auto nonZeroValueIndex = static_cast<SparseIndexType>(vocabToIndex[inputWords[count]]);
+        // Add the sample to the sequence
+        nonZeroValues.push_back(1.0);
+        rowIndices.push_back(nonZeroValueIndex);
+        colStarts.push_back(static_cast<SparseIndexType>(count));
+    }
+    colStarts.push_back(static_cast<SparseIndexType>(numNonZeroValues));
+
+    // Create input value using one-hot vector and input data map
+    ValuePtr inputVal = Value::CreateSequence<float>(vocabSize, seqLen, colStarts.data(), rowIndices.data(), nonZeroValues.data(), numNonZeroValues, device);
+    std::unordered_map<Variable, ValuePtr> inputDataMap = { { inputVar, inputVal } };
+
+    // The model has only one output.
+    // If the model has more than one output, use modelFunc->Outputs to get the list of output variables.
+    Variable outputVar = modelFunc->Output();
+
+    // Create output data map. Using null as Value to indicate using system allocated memory.
+    // Alternatively, create a Value object and add it to the data map.
+    std::unordered_map<Variable, ValuePtr> outputDataMap = { { outputVar, nullptr } };
+
+    // Start evaluation on the device
+    modelFunc->Evaluate(inputDataMap, outputDataMap, device);
+
+    // Get evaluate result as dense output
+    ValuePtr outputVal = outputDataMap[outputVar];
+    std::vector<std::vector<float>> outputData;
+    outputVal->CopyVariableValueTo(outputVar, outputData);
+
+    // output the result
+    size_t outputSampleSize = outputVar.Shape().TotalSize();
+    if (outputData.size() != 1)
+    {
+        throw("Only one sequence of slots is expected as output.");
+    }
+    std::vector<float> slotSeq = outputData[0];
+    if (slotSeq.size() % outputSampleSize != 0)
+    {
+        throw("The number of elements in the slot sequence is not a multiple of sample size");
+    }
+
+    size_t numOfSlotsInOutput = slotSeq.size() / outputSampleSize;
+    if (inputWords.size() != numOfSlotsInOutput)
+    {
+        throw("The number of input words and the number of output slots do not match");
+    }
+    for (size_t i = 0; i < numOfSlotsInOutput; i++)
+    {
+        float max = slotSeq[i * outputSampleSize];
+        size_t maxIndex = 0;
+        for (size_t j = 1; j < outputSampleSize; j++)
+        {
+            if (slotSeq[i * outputSampleSize + j] > max)
+            {
+                max = slotSeq[i * outputSampleSize + j];
+                maxIndex = j;
+            }
+        }
+        printf("     %10s ---- %s\n", inputWords[i].c_str(), indexToSlots[maxIndex].c_str());
+    }
+    printf("\n");
+}
+
+std::unordered_map<std::string, size_t> buildVocabIndex(const char *filePath)
+{
+    std::unordered_map<std::string, size_t> vocab;
+    std::string str;
+    size_t idx = 0;
+
+    std::ifstream input(filePath);
+
+    while (input >> str)
+        vocab[str] = idx++;
+    return vocab;
+}
+
+std::vector<std::string> buildSlotIndex(const char *filePath)
+{
+    std::ifstream input(filePath);
+    std::vector<std::string> slots;
+    std::string str;
+
+    while (input >> str)
+        slots.push_back(str);
+    return slots;
 }
 
 /// <summary>

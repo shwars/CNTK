@@ -424,7 +424,7 @@ namespace CNTKLibraryCSEvalExamples
 
                 var inputSentence = "BOS i would like to find a flight from charlotte to las vegas that makes a stop in st. louis EOS";
                 var seqData = new List<int>();
-                // SeqStartFlagBatch is used to indicate whether this sequence is a new sequence (true) or concatenating the previous sequence (false).
+                // SeqStartFlag is used to indicate whether this sequence is a new sequence (true) or concatenating the previous sequence (false).
                 var seqStartFlag = true;
                 // Get the index of each word in the sentence.
                 string[] inputWords = inputSentence.Split(' ');
@@ -458,7 +458,7 @@ namespace CNTKLibraryCSEvalExamples
                 var outputData = outputVal.GetDenseData<float>(outputVar);
 
                 // output the result
-                var outputSampleSize = (int)outputVar.Shape.TotalSize;
+                var outputSampleSize = outputVar.Shape.TotalSize;
                 if (outputData.Count != 1)
                 {
                     throw new ApplicationException("Only one sequence of slots is expected as output.");
@@ -526,11 +526,11 @@ namespace CNTKLibraryCSEvalExamples
                 var vocabToIndex = buildVocabIndex(vocabFile);
                 var indexToSlots = buildSlotIndex(labelFile);
 
-                // Get input variable
+                // Get input variable.
                 var inputVar = modelFunc.Arguments.Single();
                 int vocabSize = inputVar.Shape.TotalSize;
 
-                // Prepare the input data.
+                // Prepare input data.
                 // Each sample is represented by an index to the onehot vector, so the index of the non-zero value of each sample is saved in the inner list.
                 // The outer list represents sequences contained in the batch.
                 var inputBatch = new List<List<int>>();
@@ -561,7 +561,7 @@ namespace CNTKLibraryCSEvalExamples
                 }
 
                 // Create the Value representing the batch data.
-                var inputValue = Value.CreateBatchOfSequences<float>(vocabSize, inputBatch, seqStartFlagBatch, DeviceDescriptor.CPUDevice);
+                var inputValue = Value.CreateBatchOfSequences<float>(vocabSize, inputBatch, seqStartFlagBatch, device);
 
                 // Build input data map.
                 var inputDataMap = new Dictionary<Variable, Value>();
@@ -671,7 +671,7 @@ namespace CNTKLibraryCSEvalExamples
                 for (; count < seqLen; count++)
                 {
                     // Get the index of the word
-                    var nonZeroValueIndex = (int)vocabToIndex[inputWords[count]];
+                    var nonZeroValueIndex = vocabToIndex[inputWords[count]];
                     // Add the sample to the sequence
                     nonZeroValues[count] = (float)1.0;
                     rowIndices[count] = nonZeroValueIndex;
@@ -701,7 +701,7 @@ namespace CNTKLibraryCSEvalExamples
                 var outputData = outputVal.GetDenseData<float>(outputVar);
 
                 // Output the result
-                var outputSampleSize = (int)outputVar.Shape.TotalSize;
+                var outputSampleSize = outputVar.Shape.TotalSize;
                 if (outputData.Count != 1)
                 {
                     throw new ApplicationException("Only one sequence of slots is expected as output.");

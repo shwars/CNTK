@@ -10,9 +10,12 @@
 #include <CNTKLibrary.h>
 
 void MultiThreadsEvaluationTests(bool);
-void EvaluationSingleSampleUsingDense(const CNTK::DeviceDescriptor& device);
-void EvaluationBatchUsingDense(const CNTK::DeviceDescriptor& device);
-void ParallelEvaluationExample(const CNTK::DeviceDescriptor& device);
+void EvaluationSingleSampleUsingDense(const CNTK::DeviceDescriptor&);
+void EvaluationBatchUsingDense(const CNTK::DeviceDescriptor&);
+void ParallelEvaluationExample(const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingOneHot(const CNTK::DeviceDescriptor&);
+void EvaluationBatchOfSequencesUsingOneHot(const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingSparse(const CNTK::DeviceDescriptor&);
 bool ShouldRunOnCpu();
 bool ShouldRunOnGpu();
 
@@ -24,6 +27,9 @@ int main()
         EvaluationSingleSampleUsingDense(CNTK::DeviceDescriptor::GPUDevice(0));
         EvaluationBatchUsingDense(CNTK::DeviceDescriptor::GPUDevice(0));
         ParallelEvaluationExample(CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationSingleSequenceUsingOneHot(CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationBatchOfSequencesUsingOneHot(CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationSingleSequenceUsingSparse(CNTK::DeviceDescriptor::GPUDevice(0));
 
         fprintf(stderr, "\n##### Test MultiThreadsEvaluation on GPU device. #####\n");
         MultiThreadsEvaluationTests(true);
@@ -35,6 +41,9 @@ int main()
         EvaluationSingleSampleUsingDense(CNTK::DeviceDescriptor::CPUDevice());
         EvaluationBatchUsingDense(CNTK::DeviceDescriptor::CPUDevice());
         ParallelEvaluationExample(CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationSingleSequenceUsingOneHot(CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationBatchOfSequencesUsingOneHot(CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationSingleSequenceUsingSparse(CNTK::DeviceDescriptor::CPUDevice());
 
         fprintf(stderr, "\n##### Test MultiThreadsEvaluation CPU device. #####\n");
         MultiThreadsEvaluationTests(false);
