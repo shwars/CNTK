@@ -7,26 +7,33 @@
 
 #include <stdio.h>
 
-void MultiThreadsEvaluation(const wchar_t* modelFileName, bool);
+#include <CNTKLibrary.h>
+
+void MultiThreadsEvaluationTests(bool);
+void EvaluationSingleSampleUsingDense(const CNTK::DeviceDescriptor& device);
 bool ShouldRunOnCpu();
 bool ShouldRunOnGpu();
 
 int main()
 {
-    const wchar_t* modelFileName = L"01_OneHidden.model";
     if (ShouldRunOnGpu())
     {
-        fprintf(stderr, "\n##### Test CNTKLibraryCPPEvalExamples on GPU device. #####\n");
-        MultiThreadsEvaluation(modelFileName, true);
+        fprintf(stderr, "\n##### Test CPPEval samples on GPU device. #####\n");
+        EvaluationSingleSampleUsingDense(CNTK::DeviceDescriptor::GPUDevice(0));
+
+        fprintf(stderr, "\n##### Test MultiThreadsEvaluation on GPU device. #####\n");
+        MultiThreadsEvaluationTests(true);
     }
 
     if (ShouldRunOnCpu())
     {
-        fprintf(stderr, "\n##### Test CNTKLibraryCPPEvalExamples on CPU device. #####\n");
-        MultiThreadsEvaluation(modelFileName, false);
+        fprintf(stderr, "\n##### Test CPPEval samples on CPU device. #####\n");
+        EvaluationSingleSampleUsingDense(CNTK::DeviceDescriptor::CPUDevice());
+
+        fprintf(stderr, "\n##### Test MultiThreadsEvaluation CPU device. #####\n");
+        MultiThreadsEvaluationTests(false);
     }
 
     fprintf(stderr, "Evaluation complete.\n");
-
     fflush(stderr);
 }

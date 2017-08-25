@@ -24,5 +24,8 @@
     <ClCompile Include="EvalMultithreads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Examples\Evaluation\CNTKLibraryCPPEvalCPUOnlyExamples\CNTKLibraryCPPEvalExamples.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

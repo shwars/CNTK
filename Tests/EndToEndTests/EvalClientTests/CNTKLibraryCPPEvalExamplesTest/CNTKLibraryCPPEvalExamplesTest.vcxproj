@@ -23,6 +23,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Examples\Evaluation\CNTKLibraryCPPEvalCPUOnlyExamples\CNTKLibraryCPPEvalExamples.cpp" />
     <ClCompile Include="..\..\CNTKv2Library\Common\Common.cpp" />
     <ClCompile Include="CNTKLibraryCPPEvalExamplesTest.cpp" />
     <ClCompile Include="EvalMultithreads.cpp" />
