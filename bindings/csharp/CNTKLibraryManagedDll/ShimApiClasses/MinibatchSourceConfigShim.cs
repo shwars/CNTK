@@ -11,5 +11,17 @@ namespace CNTK
         public MinibatchSourceConfig(IList<CNTKDictionary> deserializers) : this(Helper.AsDictionaryVector(deserializers))
         {
         }
+
+        public ulong MaxSamples
+        {
+            get { return GetMaxSamples(); }
+            set { SetMaxSamples(value); }
+        }
+
+        public ulong MaxSweeps
+        {
+            get { return GetMaxSweeps(); }
+            set { SetMaxSweeps(value); }
+        }
     }
 }

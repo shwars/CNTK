@@ -82,7 +82,7 @@ namespace CNTK.CSTrainingExamples
             while (true)
             {
                 var minibatchData = testMinibatchSource.GetNextMinibatch((uint)batchSize, device);
-                if (minibatchData == null)
+                if (minibatchData == null || minibatchData.Count == 0)
                     break;
                 totalCount += (int)minibatchData[featureStreamInfo].numberOfSamples;
                 if (totalCount > maxCount)

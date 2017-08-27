@@ -19,6 +19,27 @@
     }
 }
 
+%extend CNTK::MinibatchSourceConfig {
+    unsigned long long GetMaxSamples()
+    {
+        return self->maxSamples;
+    }
+
+    void SetMaxSamples(unsigned long long i_maxSamples)
+    {
+        self->maxSamples = i_maxSamples;
+    }
+
+    unsigned long long GetMaxSweeps()
+    {
+        return self->maxSweeps;
+    }
+
+    void SetMaxSweeps(unsigned long long i_maxSweeps)
+    {
+        self->maxSweeps = i_maxSweeps;
+    }
+}
 
 %extend CNTK::NDArrayView {
     NDArrayView(const NDShape& viewShape, float *dataBuffer, size_t numBufferElements, const DeviceDescriptor& device, bool readOnly = false)

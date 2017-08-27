@@ -194,7 +194,7 @@ namespace CNTK.CSTrainingExamples
                 pastValueRecurrenceHook,
                 pastValueRecurrenceHook,
                 device).Item1;
-            Function thoughtVectorFunction = CNTKLib.Last(LSTMFunction);
+            Function thoughtVectorFunction = CNTKLib.SequenceLast(LSTMFunction);
 
             return TestHelper.FullyConnectedLinearLayer(thoughtVectorFunction, numOutputClasses, device, outputName);
         }

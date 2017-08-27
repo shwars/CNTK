@@ -25,15 +25,16 @@ namespace CNTK.CSTrainingExamples
             {
                 MinibatchSource testMinibatchSourceForExistingModel = CreateMinibatchSource(
                     Path.Combine(CifarDataFolder, "test_map.txt"),
-                    Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses);
+                    Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses, 1);
 
                 TestHelper.ValidateModelWithMinibatchSource(modelFile, testMinibatchSourceForExistingModel,
                     imageDim, numClasses, "features", "labels", "classifierOutput", device);
                 return;
             }
 
+            uint maxSweeps = 5;
             var minibatchSource = CreateMinibatchSource(Path.Combine(CifarDataFolder, "train_map.txt"),
-                Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses);
+                Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses, maxSweeps);
             var imageStreamInfo = minibatchSource.StreamInfo("features");
             var labelStreamInfo = minibatchSource.StreamInfo("labels");
 
@@ -54,15 +55,19 @@ namespace CNTK.CSTrainingExamples
             var trainer = Trainer.CreateTrainer(classifierOutput, trainingLoss, prediction,
                 new List<Learner> { Learner.SGDLearner(classifierOutput.Parameters(), learningRatePerSample) });
 
-            uint minibatchSize = 32;
-            int numMinibatchesToTrain = 2000;
-            int outputFrequencyInMinibatches = 20;
-            for (int i = 0; i < numMinibatchesToTrain; ++i)
+            uint minibatchSize = 64;
+            int outputFrequencyInMinibatches = 20, miniBatchCount = 0;
+            while (true)
             {
                 var minibatchData = minibatchSource.GetNextMinibatch(minibatchSize, device);
+                if (minibatchData == null || minibatchData.Count == 0)
+                {
+                    break;
+                }
+
                 trainer.TrainMinibatch(new Dictionary<Variable, MinibatchData>()
-                    { { imageInput, minibatchData[imageStreamInfo] }, { labelsVar, minibatchData[labelStreamInfo] } }, device);
-                TestHelper.PrintTrainingProgress(trainer, i, outputFrequencyInMinibatches);
+                        { { imageInput, minibatchData[imageStreamInfo] }, { labelsVar, minibatchData[labelStreamInfo] } }, device);
+                TestHelper.PrintTrainingProgress(trainer, miniBatchCount++, outputFrequencyInMinibatches);
             }
 
             var imageClassifier = Function.Combine(new List<Variable>() { trainingLoss, prediction, classifierOutput}, "ImageClassifier");
@@ -70,7 +75,7 @@ namespace CNTK.CSTrainingExamples
 
             MinibatchSource testMinibatchSource = CreateMinibatchSource(
                 Path.Combine(CifarDataFolder, "test_map.txt"), 
-                Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses);
+                Path.Combine(CifarDataFolder, "CIFAR-10_mean.xml"), imageDim, numClasses, 1);
             TestHelper.ValidateModelWithMinibatchSource(modelFile, testMinibatchSource,
                 imageDim, numClasses, "features", "labels", "classifierOutput", device);
         }
@@ -173,28 +178,28 @@ namespace CNTK.CSTrainingExamples
             int cMap1 = 16;
             var conv1 = ConvBatchNormalizationReLULayer(input, cMap1, kernelWidth, kernelHeight, 1, 1, conv1WScale, convBValue, scValue, bnTimeConst, true /*spatial*/, device);
 
-            var rn1_1 = ResNetNode(new Variable(conv1), cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
-            var rn1_2 = ResNetNode(new Variable(rn1_1), cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, device);
-            var rn1_3 = ResNetNode(new Variable(rn1_2), cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
+            var rn1_1 = ResNetNode(conv1, cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
+            var rn1_2 = ResNetNode(rn1_1, cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, device);
+            var rn1_3 = ResNetNode(rn1_2, cMap1, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
 
             int cMap2 = 32;
             var rn2_1_wProj = GetProjectionMap(cMap2, cMap1, device);
-            var rn2_1 = ResNetNodeInc(new Variable(rn1_3), cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, rn2_1_wProj, device);
-            var rn2_2 = ResNetNode(new Variable(rn2_1), cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
-            var rn2_3 = ResNetNode(new Variable(rn2_2), cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, device);
+            var rn2_1 = ResNetNodeInc(rn1_3, cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, rn2_1_wProj, device);
+            var rn2_2 = ResNetNode(rn2_1, cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
+            var rn2_3 = ResNetNode(rn2_2, cMap2, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, device);
 
             int cMap3 = 64;
             var rn3_1_wProj = GetProjectionMap(cMap3, cMap2, device);
-            var rn3_1 = ResNetNodeInc(new Variable(rn2_3), cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, rn3_1_wProj, device);
-            var rn3_2 = ResNetNode(new Variable(rn3_1), cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
-            var rn3_3 = ResNetNode(new Variable(rn3_2), cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
+            var rn3_1 = ResNetNodeInc(rn2_3, cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, true /*spatial*/, rn3_1_wProj, device);
+            var rn3_2 = ResNetNode(rn3_1, cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
+            var rn3_3 = ResNetNode(rn3_2, cMap3, kernelWidth, kernelHeight, convWScale, convBValue, scValue, bnTimeConst, false /*spatial*/, device);
 
             // Global average pooling
             int poolW = 8;
             int poolH = 8;
             int poolhStride = 1;
             int poolvStride = 1;
-            var pool = CNTKLib.Pooling(new Variable(rn3_3), PoolingType.Average,
+            var pool = CNTKLib.Pooling(rn3_3, PoolingType.Average,
                 new int[] { poolW, poolH, 1 }, new int[] { poolhStride, poolvStride, 1 });
 
             TestHelper.PrintOutputDims(pool, "pool");
@@ -204,11 +209,11 @@ namespace CNTK.CSTrainingExamples
                 CNTKLib.GlorotUniformInitializer(fc1WScale, 1, 0), device);
             var outBiasParams = new Parameter(new int[] { numOutputClasses }, (float)fc1BValue, device, "");
 
-            return CNTKLib.Plus(new Variable(CNTKLib.Times(outTimesParams, new Variable(pool))), outBiasParams, outputName);
+            return CNTKLib.Plus(CNTKLib.Times(outTimesParams, pool), outBiasParams, outputName);
         }
 
         private static MinibatchSource CreateMinibatchSource(string mapFilePath, string meanFilePath,
-            int[] imageDims, int numClasses)
+            int[] imageDims, int numClasses, uint maxSweeps)
         {
             List<CNTKDictionary> transforms = new List<CNTKDictionary>{
                 CNTKLib.ReaderCrop("RandomSide",
@@ -226,7 +231,10 @@ namespace CNTK.CSTrainingExamples
                 "features",
                 transforms);
 
-            MinibatchSourceConfig config = new MinibatchSourceConfig(new List<CNTKDictionary> { deserializerConfiguration });
+            MinibatchSourceConfig config = new MinibatchSourceConfig(new List<CNTKDictionary> { deserializerConfiguration })
+            {
+                MaxSweeps = maxSweeps
+            };
 
             return CNTKLib.CreateCompositeMinibatchSource(config);
         }
