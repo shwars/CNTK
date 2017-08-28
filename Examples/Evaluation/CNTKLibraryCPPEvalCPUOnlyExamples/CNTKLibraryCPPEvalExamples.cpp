@@ -562,7 +562,8 @@ std::ifstream GetIfstream(const wchar_t *filePath)
         throw ("Unknown characters in the file path.");
     else if (writtenBytes == pathBufferLen)
         throw("The file path is too long");
-    return std::ifstream(pathBuffer);
+    const char* path = pathBuffer;
+    return std::ifstream(path);
 }
 
 std::unordered_map<std::string, size_t> BuildVocabIndex(const wchar_t *filePath)
