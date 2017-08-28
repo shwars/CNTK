@@ -553,7 +553,7 @@ void EvaluationSingleSequenceUsingSparse(const wchar_t* modelPath, const wchar_t
     printf("\n");
 }
 
-std::ifstream GetIfstream(const wchar_t *filePath)
+std::shared_ptr<std::fstream> GetIfstream(const wchar_t *filePath)
 {
     const size_t pathBufferLen = 1024;
     char pathBuffer[pathBufferLen];
@@ -563,8 +563,7 @@ std::ifstream GetIfstream(const wchar_t *filePath)
     else if (writtenBytes == pathBufferLen)
         throw("The file path is too long");
     const char* path = pathBuffer;
-    std::ifstream input(path);
-    return input;
+    return std::make_shared<std::fstream>(path);
 }
 
 std::unordered_map<std::string, size_t> BuildVocabIndex(const wchar_t *filePath)
@@ -573,20 +572,20 @@ std::unordered_map<std::string, size_t> BuildVocabIndex(const wchar_t *filePath)
     std::string str;
     size_t idx = 0;
 
-    std::ifstream input = GetIfstream(filePath);
+    std::shared_ptr<std::fstream> input = GetIfstream(filePath);
 
-    while (input >> str)
+    while (*input >> str)
         vocab[str] = idx++;
     return vocab;
 }
 
 std::vector<std::string> BuildSlotIndex(const wchar_t *filePath)
 {
-    std::ifstream input = GetIfstream(filePath);
+    std::shared_ptr<std::fstream> input = GetIfstream(filePath);
     std::vector<std::string> slots;
     std::string str;
 
-    while (input >> str)
+    while (*input >> str)
         slots.push_back(str);
     return slots;
 }
