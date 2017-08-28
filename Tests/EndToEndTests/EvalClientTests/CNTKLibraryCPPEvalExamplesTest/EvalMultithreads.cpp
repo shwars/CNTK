@@ -453,9 +453,8 @@ void RunEvaluationOneHidden(FunctionPtr evalFunc, const DeviceDescriptor& device
     }
 }
 
-void MultiThreadsEvaluationTests(bool isGPUAvailable)
+void MultiThreadsEvaluationTests(const wchar_t* modelFileName, bool isGPUAvailable)
 {
-    const wchar_t* modelFileName = L"01_OneHidden.model";
     // The number of threads running evaluation in parallel.
     const int numOfThreads = 2;
 
