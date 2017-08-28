@@ -33,7 +33,7 @@ namespace UWPEvalTests
         const wchar_t* vocabularyFilePath = L"query.txt";
         const wchar_t* labelFilePath = L"slots.txt";
 
-        concurrency::task<Platform::String^> GetModelFilePath(Platform::String^ modelFileName)
+        concurrency::task<Platform::String^> GetFilePath(Platform::String^ modelFileName)
         {
             auto modelFileOp = KnownFolders::DocumentsLibrary->GetFileAsync(modelFileName);
             return concurrency::create_task(modelFileOp).then([modelFileName](concurrency::task<StorageFile^> modelFileTask) {
@@ -62,7 +62,7 @@ namespace UWPEvalTests
         {
             Platform::String^ modelFileName = ref new Platform::String(modelFile);
             try {
-                concurrency::create_task(GetModelFilePath(modelFileName)).then([&func](concurrency::task<Platform::String^> modelFilePath) {
+                concurrency::create_task(GetFilePath(modelFileName)).then([&func](concurrency::task<Platform::String^> modelFilePath) {
                     auto path = modelFilePath.get();
                     func(path->Data());
                 }).get();
@@ -80,20 +80,19 @@ namespace UWPEvalTests
             Platform::String^ vocabularyFileName = ref new Platform::String(vocabularyFile);
             Platform::String^ labelFileName = ref new Platform::String(labelFile);
 
-            UNREFERENCED_PARAMETER(func);
-            //try {
-            //    auto modelFilePathInUse = concurrency::create_task(GetModelFilePath(modelFileName)).get();
-            //    auto vocabularyFilePathInUse = concurrency::create_task(GetModelFilePath(vocabularyFileName)).get();
-            //    auto labelFilePathInUse = concurrency::create_task(GetModelFilePath(labelFileName)).get();
+            try {
+                auto modelFilePathInUse = concurrency::create_task(GetFilePath(modelFileName)).get();
+                auto vocabularyFilePathInUse = concurrency::create_task(GetFilePath(vocabularyFileName)).get();
+                auto labelFilePathInUse = concurrency::create_task(GetFilePath(labelFileName)).get();
 
-            //    concurrency::create_task([modelFilePathInUse, vocabularyFilePathInUse, labelFilePathInUse, func] () -> void {
-            //        func(modelFilePathInUse->Data(), vocabularyFilePathInUse->Data(), labelFilePathInUse->Data());
-            //    }).get();
-            //}
-            //catch (...) {
-            //    Assert::Fail(L"Exception while test execution");
-            //    throw;
-            //}
+                concurrency::create_task([modelFilePathInUse, vocabularyFilePathInUse, labelFilePathInUse, func] () -> void {
+                    func(modelFilePathInUse->Data(), vocabularyFilePathInUse->Data(), labelFilePathInUse->Data());
+                }).get();
+            }
+            catch (...) {
+                Assert::Fail(L"Exception while test execution");
+                throw;
+            }
         }
 
     public:
@@ -141,24 +140,23 @@ namespace UWPEvalTests
 
         TEST_METHOD(UWPTestEvaluationSingleSequenceUsingOneHot)
         {
-            Assert::IsTrue(true);
-            /*RunTestWithAtisModel(atisModelPath, vocabularyFilePath, labelFilePath, [](const wchar_t* path, const wchar_t* vocabPath, const wchar_t* labelPath) {
+            RunTestWithAtisModel(atisModelPath, vocabularyFilePath, labelFilePath, [](const wchar_t* path, const wchar_t* vocabPath, const wchar_t* labelPath) {
                 EvaluationSingleSequenceUsingOneHot(path, vocabPath, labelPath, CNTK::DeviceDescriptor::CPUDevice());
-            });*/
+            });
         }
 
-        //TEST_METHOD(UWPTestEvaluationBatchOfSequencesUsingOneHot)
-        //{
-        //    RunTestWithModel(atisModelPath, vocabularyFilePath, labelFilePath, [](auto path, auto vocabPath, auto labelPath) {
-        //        EvaluationBatchOfSequencesUsingOneHot(path, vocabPath, labelPath, CNTK::DeviceDescriptor::CPUDevice());
-        //    });
-        //}
+        TEST_METHOD(UWPTestEvaluationBatchOfSequencesUsingOneHot)
+        {
+            RunTestWithAtisModel(atisModelPath, vocabularyFilePath, labelFilePath, [](const wchar_t* path, const wchar_t* vocabPath, const wchar_t* labelPath) {
+                EvaluationBatchOfSequencesUsingOneHot(path, vocabPath, labelPath, CNTK::DeviceDescriptor::CPUDevice());
+            });
+        }
 
-        //TEST_METHOD(UWPTestEvaluationSingleSequenceUsingSparse)
-        //{
-        //    RunTestWithModel(atisModelPath, vocabularyFilePath, labelFilePath, [](auto path, auto vocabPath, auto labelPath) {
-        //        EvaluationSingleSequenceUsingSparse(path, vocabPath, labelPath, CNTK::DeviceDescriptor::CPUDevice());
-        //    });
-        //}
+        TEST_METHOD(UWPTestEvaluationSingleSequenceUsingSparse)
+        {
+            RunTestWithAtisModel(atisModelPath, vocabularyFilePath, labelFilePath, [](const wchar_t* path, const wchar_t* vocabPath, const wchar_t* labelPath) {
+                EvaluationSingleSequenceUsingSparse(path, vocabPath, labelPath, CNTK::DeviceDescriptor::CPUDevice());
+            });
+        }
     };
 }
