@@ -30,8 +30,8 @@ namespace UWPEvalTests
         const wchar_t* oneHiddenModelPath = L"01_OneHidden.model";
         const wchar_t* resnet20ModelPath = L"resnet20.model";
         const wchar_t* atisModelPath = L"atis.model";
-        const wchar_t* vocabularyFilePath = L"query.txt";
-        const wchar_t* labelFilePath = L"slots.txt";
+        const wchar_t* vocabularyFilePath = L"query.wl";
+        const wchar_t* labelFilePath = L"slots.wl";
 
         concurrency::task<Platform::String^> GetFilePath(Platform::String^ modelFileName)
         {

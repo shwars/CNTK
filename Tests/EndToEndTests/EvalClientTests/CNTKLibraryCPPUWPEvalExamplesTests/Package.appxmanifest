@@ -22,11 +22,12 @@
       </uap:VisualElements>
       <Extensions>
         <uap:Extension Category="windows.fileTypeAssociation">
-          <uap:FileTypeAssociation Name=".model">
-            <uap:DisplayName>Model File</uap:DisplayName>
-            <uap:InfoTip>CNTK Model file</uap:InfoTip>
+          <uap:FileTypeAssociation Name="cntkfiles">
+            <uap:DisplayName>CNTK files</uap:DisplayName>
+            <uap:InfoTip>CNTK Model file and data files</uap:InfoTip>
             <uap:SupportedFileTypes>
               <uap:FileType>.model</uap:FileType>
+              <uap:FileType>.wl</uap:FileType>
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>

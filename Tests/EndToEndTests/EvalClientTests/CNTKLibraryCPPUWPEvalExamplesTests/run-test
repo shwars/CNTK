@@ -24,11 +24,11 @@ test -x "$VSTEST_CONSOLE" || exit $?
 
 # Use pretrained model
 MODEL_DIR=$(cygpath -au "$USERPROFILE\\Documents")
-cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/01_OneHidden.model "$MODEL_FILE"/01_OneHidden.model || exit $?
-cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/resnet20_cifar10_python.dnn "$MODEL_FILE"/resnet20.model || exit $?
-cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/atis.dnn "$MODEL_FILE"/atis.model || exit $?
-cp $TEST_ROOT_DIR/../../Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl "$MODEL_FILE"/query.txt || exit $?
-cp $TEST_ROOT_DIR/../../Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl "$MODEL_FILE"/slots.txt || exit $?
+cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/01_OneHidden.model "$MODEL_DIR"/01_OneHidden.model || exit $?
+cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/resnet20_cifar10_python.dnn "$MODEL_DIR"/resnet20.model || exit $?
+cp $TEST_DATA_DIR/PreTrainedModels/EvalModels/atis.dnn "$MODEL_DIR"/atis.model || exit $?
+cp $TEST_ROOT_DIR/../../Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl "$MODEL_DIR"/query.wl || exit $?
+cp $TEST_ROOT_DIR/../../Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl "$MODEL_DIR"/slots.wl || exit $?
 
 # Set CUDA_VISIBLE_DEVICES to exclude all gpu if running on cpu device
 [ "$TEST_DEVICE" == "cpu" ] && export CUDA_VISIBLE_DEVICES=-1
@@ -36,7 +36,7 @@ cp $TEST_ROOT_DIR/../../Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 "$VSTEST_CONSOLE" /inIsolation /Platform:x64 $(cygpath -aw "$TEST_BIN_DIR/CNTKLibraryCPPUWPEvalExamplesTests/AppPackages/CNTKLibraryCPPUWPEvalExamplesTests_1.0.0.0_x64_"$TEST_FLAVOR"_UWP_Test/CNTKLibraryCPPUWPEvalExamplesTests_1.0.0.0_x64_"$TEST_FLAVOR"_UWP.appx") || exit $?
 
  
-for fn in 01_OneHidden.model resnet20.model.model atis.model query.txt slots.txt; do
+for fn in 01_OneHidden.model resnet20.model.model atis.model query.wl slots.wl; do
   rm -rf "$MODEL_FILE"/$fn || exit $?
   if [[ -f "$MODEL_FILE"/$fn ]]; then
     echo "Failed to delete the model file $MODEL_FILE"
