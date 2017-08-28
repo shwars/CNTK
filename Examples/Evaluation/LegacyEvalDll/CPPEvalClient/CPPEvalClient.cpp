@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
         ret = 1;
     }
 
+    fflush(stdout);
     fflush(stderr);
     return ret;
 }
