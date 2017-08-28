@@ -30,16 +30,16 @@ void PrintOutput(size_t, std::vector<std::vector<ElementType>>);
 /// - how to retrieve evaluation result and retrieve output data in dense format.
 /// Note: The example uses the model trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
 /// Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
+/// The parameter 'modelFile' specifies the path to the model.
 /// </summary>
-void EvaluationSingleSampleUsingDense(const wchar_t* modelPath, const DeviceDescriptor& device)
+void EvaluationSingleSampleUsingDense(const wchar_t* modelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate single sample using dense format.\n");
 
     // Load the model.
     // The model is trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
     // Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Get input variable. The model has only one single input.
     Variable inputVar = modelFunc->Arguments()[0];
@@ -88,9 +88,9 @@ void EvaluationSingleSampleUsingDense(const wchar_t* modelPath, const DeviceDesc
 /// - how to retrieve evaluation result and retrieve output data in dense format.
 /// Note: The example uses the model trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
 /// Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
+/// The parameter 'modelFile' specifies the path to the model.
 /// </summary>
-void EvaluationBatchUsingDense(const wchar_t* modelPath, const DeviceDescriptor& device)
+void EvaluationBatchUsingDense(const wchar_t* modelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate batch of samples using dense format.\n");
 
@@ -100,7 +100,7 @@ void EvaluationBatchUsingDense(const wchar_t* modelPath, const DeviceDescriptor&
     // Load the model.
     // The model is trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
     // Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Get input variable. The model has only one single input.
     Variable inputVar = modelFunc->Arguments()[0];
@@ -147,9 +147,9 @@ void RunEvaluationOnSingleSample(FunctionPtr, const DeviceDescriptor&);
 /// - how to evaluate multiple sample requests in parallel.
 /// Note: The example uses the model trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
 /// Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
+/// The parameter 'modelFile' specifies the path to the model.
 /// </summary>
-void ParallelEvaluationExample(const wchar_t* modelPath, const DeviceDescriptor& device)
+void ParallelEvaluationExample(const wchar_t* modelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate multiple requests in parallel.\n");
 
@@ -158,7 +158,7 @@ void ParallelEvaluationExample(const wchar_t* modelPath, const DeviceDescriptor&
     // Load the model.
     // The model is trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
     // Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Run evaluation in parallel.
     std::vector<std::thread> threadList(threadCount);
@@ -225,23 +225,23 @@ std::vector<std::string> BuildSlotIndex(const wchar_t*);
 /// - how to retrieve evaluation result.
 /// The examples uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
-/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
-/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
+/// The parameter 'modelFile' specifies the path to the model.
+/// The vocabularyFile specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFile specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
 /// <param name="device">Specify on which device to run the evaluation</param>
-void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
+void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelFile, const wchar_t* vocabularyFile, const wchar_t* labelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate single sequence using one-hot vector.\n");
 
     // Load the model.
     // The model is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
     // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Read word and slot index files.
-    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFilePath);
-    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFilePath);
+    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFile);
+    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFile);
 
     // Get input variable. The model has only one single input.
     Variable inputVar = modelFunc->Arguments()[0];
@@ -329,22 +329,22 @@ void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t
 /// - how to evaluate a model.
 /// The example uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
-/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
-/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
+/// The parameter 'modelFile' specifies the path to the model.
+/// The vocabularyFile specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFile specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
-void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
+void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelFile, const wchar_t* vocabularyFile, const wchar_t* labelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate batch of sequences with variable length using one-hot vector.\n");
 
     // Load the model.
     // The model is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
     // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Read word and slot index files.
-    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFilePath);
-    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFilePath);
+    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFile);
+    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFile);
 
     // Get input variable. The model has only one single input.
     Variable inputVar = modelFunc->Arguments()[0];
@@ -446,22 +446,22 @@ void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar
 /// - how to prepare input data as sequence using sparse input.
 /// The example uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-/// The parameter 'modelPath' specifies the path to the model.
-/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
-/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
+/// The parameter 'modelFile' specifies the path to the model.
+/// The vocabularyFile specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFile specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
-void EvaluationSingleSequenceUsingSparse(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
+void EvaluationSingleSequenceUsingSparse(const wchar_t* modelFile, const wchar_t* vocabularyFile, const wchar_t* labelFile, const DeviceDescriptor& device)
 {
     printf("\n===== Evaluate single sequence using sparse input.\n");
 
     // Load the model.
     // The model is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
     // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-    FunctionPtr modelFunc = Function::Load(modelPath, device);
+    FunctionPtr modelFunc = Function::Load(modelFile, device);
 
     // Read word and slot index files.
-    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFilePath);
-    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFilePath);
+    std::unordered_map<std::string, size_t> vocabToIndex = BuildVocabIndex(vocabularyFile);
+    std::vector<std::string> indexToSlots = BuildSlotIndex(labelFile);
 
     // Get input variable. The model has only one single input.
     Variable inputVar = modelFunc->Arguments()[0];

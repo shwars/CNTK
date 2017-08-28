@@ -9,50 +9,50 @@
 
 #include "CNTKLibrary.h"
 
-void MultiThreadsEvaluationTests(const wchar_t* modelPath, bool);
-void EvaluationSingleSampleUsingDense(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void EvaluationBatchUsingDense(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void ParallelEvaluationExample(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
-void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
-void EvaluationSingleSequenceUsingSparse(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void MultiThreadsEvaluationTests(const wchar_t*, bool);
+void EvaluationSingleSampleUsingDense(const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationBatchUsingDense(const wchar_t*, const CNTK::DeviceDescriptor&);
+void ParallelEvaluationExample(const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingOneHot(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationBatchOfSequencesUsingOneHot(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingSparse(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
 bool ShouldRunOnCpu();
 bool ShouldRunOnGpu();
 
 int main()
 {
-    const wchar_t* oneHiddenModelPath = L"01_OneHidden.model";
-    const wchar_t* resnet20ModelPath = L"resnet20.dnn";
-    const wchar_t* atisModelPath = L"atis.dnn";
-    const wchar_t* vocabularyFilePath = L"query.wl";
-    const wchar_t* labelFilePath = L"slots.wl";
+    const wchar_t* oneHiddenModel = L"01_OneHidden.model";
+    const wchar_t* resnet20Model = L"resnet20.dnn";
+    const wchar_t* atisModel = L"atis.dnn";
+    const wchar_t* vocabularyFile = L"query.wl";
+    const wchar_t* labelFile = L"slots.wl";
 
     if (ShouldRunOnGpu())
     {
         fprintf(stderr, "\n##### Test CPPEval samples on GPU device. #####\n");
-        EvaluationSingleSampleUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
-        EvaluationBatchUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
-        ParallelEvaluationExample(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
-        EvaluationSingleSequenceUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
-        EvaluationBatchOfSequencesUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
-        EvaluationSingleSequenceUsingSparse(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationSingleSampleUsingDense(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationBatchUsingDense(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
+        ParallelEvaluationExample(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationSingleSequenceUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationBatchOfSequencesUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
+        EvaluationSingleSequenceUsingSparse(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
 
         fprintf(stderr, "\n##### Test MultiThreadsEvaluation on GPU device. #####\n");
-        MultiThreadsEvaluationTests(oneHiddenModelPath, true);
+        MultiThreadsEvaluationTests(oneHiddenModel, true);
     }
 
     if (ShouldRunOnCpu())
     {
         fprintf(stderr, "\n##### Test CPPEval samples on CPU device. #####\n");
-        EvaluationSingleSampleUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
-        EvaluationBatchUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
-        ParallelEvaluationExample(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
-        EvaluationSingleSequenceUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
-        EvaluationBatchOfSequencesUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
-        EvaluationSingleSequenceUsingSparse(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationSingleSampleUsingDense(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationBatchUsingDense(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
+        ParallelEvaluationExample(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationSingleSequenceUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationBatchOfSequencesUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
+        EvaluationSingleSequenceUsingSparse(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
 
         fprintf(stderr, "\n##### Test MultiThreadsEvaluation CPU device. #####\n");
-        MultiThreadsEvaluationTests(oneHiddenModelPath, false);
+        MultiThreadsEvaluationTests(oneHiddenModel, false);
     }
 
     fprintf(stderr, "Evaluation complete.\n");

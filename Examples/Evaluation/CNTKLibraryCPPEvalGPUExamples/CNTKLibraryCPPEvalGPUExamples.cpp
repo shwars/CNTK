@@ -8,69 +8,69 @@
 #include <stdio.h>
 #include "CNTKLibrary.h"
 
-void EvaluationSingleSampleUsingDense(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void EvaluationBatchUsingDense(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void ParallelEvaluationExample(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
-void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
-void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
-void EvaluationSingleSequenceUsingSparse(const wchar_t* modelPath, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationSingleSampleUsingDense(const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationBatchUsingDense(const wchar_t*, const CNTK::DeviceDescriptor&);
+void ParallelEvaluationExample(const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingOneHot(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationBatchOfSequencesUsingOneHot(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
+void EvaluationSingleSequenceUsingSparse(const wchar_t*, const wchar_t*, const wchar_t*, const CNTK::DeviceDescriptor&);
 
 
 int main()
 {
     // The resnet20.dnn model is trained by <CNTK>/Examples/Image/Classification/ResNet/Python/TrainResNet_CIFAR10.py
     // Please see README.md in <CNTK>/Examples/Image/Classification/ResNet about how to train the model.
-    const wchar_t* resnet20ModelPath = L"resnet20.dnn";
+    const wchar_t* resnet20Model = L"resnet20.dnn";
 
     // The atis.dnn model is trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
     // Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
-    const wchar_t* atisModelPath = L"atis.dnn";
+    const wchar_t* atisModel = L"atis.dnn";
 
     // The query.wl is the vacabulary file used by the ATIS model. It is available in <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript.
-    const wchar_t* vocabularyFilePath = L"query.wl";
+    const wchar_t* vocabularyFile = L"query.wl";
 
     // The slots.wl is the label file used by the ATIS model. It is available in <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript.
-    const wchar_t* labelFilePath = L"slots.wl";
+    const wchar_t* labelFile = L"slots.wl";
 
     printf("\n##### Run CNTKLibraryCPPEvalGPUExamples on CPU. #####\n");
 
     // Evalaute a single image with reset20_cifar model.
-    EvaluationSingleSampleUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
+    EvaluationSingleSampleUsingDense(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
 
     // Evalaute batch of images with reset20_cifar model.
-    EvaluationBatchUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
+    EvaluationBatchUsingDense(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
 
     // Evalaute users requests in parallel with reset20_cifar model.
-    ParallelEvaluationExample(resnet20ModelPath, CNTK::DeviceDescriptor::CPUDevice());
+    ParallelEvaluationExample(resnet20Model, CNTK::DeviceDescriptor::CPUDevice());
 
     // Evaluate a single sequence with ATIS model.
-    EvaluationSingleSequenceUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
+    EvaluationSingleSequenceUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
 
     // Evaluate batch of sequences with ATIS model.
-    EvaluationBatchOfSequencesUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
+    EvaluationBatchOfSequencesUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
 
     // Evalaute a sequence using sparse input with ATIS model.
-    EvaluationSingleSequenceUsingSparse(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::CPUDevice());
+    EvaluationSingleSequenceUsingSparse(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::CPUDevice());
 
     printf("\n##### Run CNTKLibraryCPPEvalGPUExamples on GPU. #####\n");
 
     // Evalaute a single image with reset20_cifar model.
-    EvaluationSingleSampleUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
+    EvaluationSingleSampleUsingDense(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
 
     // Evalaute batch of images with reset20_cifar model.
-    EvaluationBatchUsingDense(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
+    EvaluationBatchUsingDense(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
 
     // Evalaute users requests in parallel with reset20_cifar model.
-    ParallelEvaluationExample(resnet20ModelPath, CNTK::DeviceDescriptor::GPUDevice(0));
+    ParallelEvaluationExample(resnet20Model, CNTK::DeviceDescriptor::GPUDevice(0));
 
     // Evaluate a single sequence with ATIS model.
-    EvaluationSingleSequenceUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
+    EvaluationSingleSequenceUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
 
     // Evaluate batch of sequences with ATIS model.
-    EvaluationBatchOfSequencesUsingOneHot(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
+    EvaluationBatchOfSequencesUsingOneHot(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
 
     // Evalaute a sequence using sparse input with ATIS model.
-    EvaluationSingleSequenceUsingSparse(atisModelPath, vocabularyFilePath, labelFilePath, CNTK::DeviceDescriptor::GPUDevice(0));
+    EvaluationSingleSequenceUsingSparse(atisModel, vocabularyFile, labelFile, CNTK::DeviceDescriptor::GPUDevice(0));
 
     printf("Evaluation complete.\n");
 }
