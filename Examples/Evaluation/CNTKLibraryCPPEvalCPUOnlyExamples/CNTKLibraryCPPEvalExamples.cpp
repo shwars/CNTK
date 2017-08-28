@@ -226,6 +226,8 @@ std::vector<std::string> BuildSlotIndex(const wchar_t*);
 /// The examples uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
 /// The parameter 'modelPath' specifies the path to the model.
+/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
 /// <param name="device">Specify on which device to run the evaluation</param>
 void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
@@ -328,6 +330,8 @@ void EvaluationSingleSequenceUsingOneHot(const wchar_t* modelPath, const wchar_t
 /// The example uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
 /// The parameter 'modelPath' specifies the path to the model.
+/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
 void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
 {
@@ -443,6 +447,8 @@ void EvaluationBatchOfSequencesUsingOneHot(const wchar_t* modelPath, const wchar
 /// The example uses the model trained by <CNTK>/Examples/LanguageUnderstanding/ATIS/Python/LanguageUnderstanding.py
 /// Please see README.md in <CNTK>/Examples/LanguageUnderstanding/ATIS about how to train the model.
 /// The parameter 'modelPath' specifies the path to the model.
+/// The vocabularyFilePath specifies the vacabulary file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/query.wl
+/// The labelFilePath specifies the label file used by the ATIS model, e.g. <CNTK>/Examples/LanguageUnderstanding/ATIS/BrainScript/slots.wl
 /// </summary>
 void EvaluationSingleSequenceUsingSparse(const wchar_t* modelPath, const wchar_t* vocabularyFilePath, const wchar_t* labelFilePath, const DeviceDescriptor& device)
 {

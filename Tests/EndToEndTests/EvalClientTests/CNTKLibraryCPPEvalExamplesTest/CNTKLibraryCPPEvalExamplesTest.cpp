@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-#include <CNTKLibrary.h>
+#include "CNTKLibrary.h"
 
 void MultiThreadsEvaluationTests(const wchar_t* modelPath, bool);
 void EvaluationSingleSampleUsingDense(const wchar_t* modelPath, const CNTK::DeviceDescriptor&);
